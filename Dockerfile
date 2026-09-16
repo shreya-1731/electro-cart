@@ -1,17 +1,17 @@
 FROM php:8.2-apache
 
-# Enable Apache rewrite module
+# Enable mod_rewrite
 RUN a2enmod rewrite
 
 WORKDIR /var/www/html
 
-# Copy all project files
+# Copy all project files into /var/www/html
 COPY . /var/www/html/
 
-# 1. REMOVE the root .htaccess file (fixes the 403 Forbidden error)
+# 1. Remove any root .htaccess file that causes 403 Forbidden
 RUN rm -f /var/www/html/.htaccess
 
-# 2. Automatically recreate folder structure for all files uploaded directly to the root
+# 2. Recreate required folder structure
 RUN mkdir -p /var/www/html/config \
              /var/www/html/includes \
              /var/www/html/api \
@@ -20,7 +20,7 @@ RUN mkdir -p /var/www/html/config \
              /var/www/html/assets/js \
              /var/www/html/assets/images/products
 
-# Reorganize PHP files into their required directories
+# Reorganize PHP files if they were uploaded flat to root
 RUN [ -f /var/www/html/db.php ] && cp /var/www/html/db.php /var/www/html/config/db.php || true
 RUN [ -f /var/www/html/header.php ] && cp /var/www/html/header.php /var/www/html/includes/header.php || true
 RUN [ -f /var/www/html/footer.php ] && cp /var/www/html/footer.php /var/www/html/includes/footer.php || true
@@ -43,27 +43,13 @@ RUN cp /var/www/html/*.svg /var/www/html/assets/images/ 2>/dev/null || true
 RUN cp /var/www/html/p*.jpg /var/www/html/assets/images/products/ 2>/dev/null || true
 RUN cp /var/www/html/assets/images/p*.jpg /var/www/html/assets/images/products/ 2>/dev/null || true
 
-# 3. Set Apache permissions for www-data
+# 3. Set proper ownership and permissions for Apache
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html \
     && chmod -R 777 /var/www/html/data
 
-# 4. Configure Apache VirtualHost
-RUN echo '<VirtualHost *:${PORT}>\n\
-    ServerAdmin webmaster@localhost\n\
-    DocumentRoot /var/www/html\n\
-    <Directory /var/www/html>\n\
-        Options Indexes FollowSymLinks\n\
-        AllowOverride All\n\
-        Require all granted\n\
-        DirectoryIndex index.php index.html\n\
-    </Directory>\n\
-    ErrorLog ${APACHE_LOG_DIR}/error.log\n\
-    CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
-</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
-
-# 5. Bind Apache to Render dynamic PORT
-RUN sed -i 's/Listen 80/Listen ${PORT}/g' /etc/apache2/ports.conf
+# 4. Bind Apache cleanly to Render PORT (10000)
+RUN sed -i 's/80/${PORT}/g' /etc/apache2/ports.conf /etc/apache2/sites-available/000-default.conf
 
 ENV PORT=10000
 EXPOSE 10000
