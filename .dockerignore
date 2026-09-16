@@ -1,0 +1,4 @@
+.git
+.gitignore
+start_server.bat
+*.log
