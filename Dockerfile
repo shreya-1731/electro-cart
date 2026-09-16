@@ -18,7 +18,7 @@ RUN mkdir -p /var/www/html/config \
              /var/www/html/data \
              /var/www/html/assets/css \
              /var/www/html/assets/js \
-             /var/www/html/assets/images
+             /var/www/html/assets/images/products
 
 # Reorganize PHP files into their required directories
 RUN [ -f /var/www/html/db.php ] && cp /var/www/html/db.php /var/www/html/config/db.php || true
@@ -36,10 +36,12 @@ RUN [ -f /var/www/html/animations.css ] && cp /var/www/html/animations.css /var/
 RUN [ -f /var/www/html/main.js ] && cp /var/www/html/main.js /var/www/html/assets/js/main.js || true
 RUN [ -f /var/www/html/cart.js ] && cp /var/www/html/cart.js /var/www/html/assets/js/cart.js || true
 
-# Reorganize Images into assets/images/
+# Reorganize Images into both assets/images/ AND assets/images/products/
 RUN cp /var/www/html/*.jpg /var/www/html/assets/images/ 2>/dev/null || true
 RUN cp /var/www/html/*.png /var/www/html/assets/images/ 2>/dev/null || true
 RUN cp /var/www/html/*.svg /var/www/html/assets/images/ 2>/dev/null || true
+RUN cp /var/www/html/p*.jpg /var/www/html/assets/images/products/ 2>/dev/null || true
+RUN cp /var/www/html/assets/images/p*.jpg /var/www/html/assets/images/products/ 2>/dev/null || true
 
 # 3. Set Apache permissions for www-data
 RUN chown -R www-data:www-data /var/www/html \
